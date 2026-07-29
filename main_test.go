@@ -16,7 +16,7 @@ import (
 // ============================================================
 
 func TestFeAdd(t *testing.T) {
-	// ケース1: 素直な足し算（まだ mod は跨がない）
+	// ケース1: 和が p 未満なので mod しても変わらない
 	got := feAdd(big.NewInt(2), big.NewInt(3))
 	if got.Cmp(big.NewInt(5)) != 0 {
 		t.Errorf("feAdd(2,3) = %v, want 5", got)
