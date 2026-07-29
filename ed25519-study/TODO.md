@@ -5,7 +5,7 @@ RFC 8032 の Ed25519 を Go でゼロから実装する。`math/big` と `crypto
 
 進める順番: **field → curve → sign**（下の層が固まってから次へ）。
 
-> ★ 当面のゴール: `main_test.go` の **`TestAgainstStdEd25519`** を通すこと。
+> ★ 当面のゴール: **`TestAgainstStdEd25519`** を通すこと。
 > （標準 crypto/ed25519 と keygen/sign/verify がバイト一致 = Ed25519 コア完成）
 > ph/ctx/batch は応用でゴールではない。
 
