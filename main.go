@@ -37,3 +37,15 @@ func main() {
 // TODO: generateKey(seed) / sign(priv, msg) / verify(pub, msg, sig)
 //   → 成功: 自作鍵で sign→verify が true、1bit変えると false、
 //           最後に RFC 8032 テストベクタ / 標準 crypto/ed25519 と一致
+
+// --- スタブ（空の器）---
+// ゴールテストをコンパイルさせるためだけの仮実装。中身は後の段階で埋める。
+// （ゴールテストは t.Skip 中なので、今これらが呼ばれることはない）
+func generateKey(seed []byte) []byte      { return nil }
+func sign(seed, msg []byte) []byte        { return nil }
+func verify(pub, msg, sig []byte) bool    { return false }
+func signPh(seed, msg []byte) []byte      { return nil }
+func verifyPh(pub, msg, sig []byte) bool  { return false }
+func signCtx(seed, msg []byte, ctx string) []byte     { return nil }
+func verifyCtx(pub, msg, sig []byte, ctx string) bool { return false }
+func verifyBatch(pubs, msgs, sigs [][]byte) bool      { return false }
