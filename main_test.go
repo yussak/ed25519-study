@@ -30,9 +30,53 @@ func TestFeAdd(t *testing.T) {
 	}
 }
 
-// TODO: TestFeSub を自分で書く。ヒント: 3 - 5 は 0 未満。mod p で正の値に畳めているか？
-// TODO: TestFeMul を自分で書く。ヒント: (p-1) * 2 ≡ p-2 (mod p) など。
-// TODO: TestFeInv を自分で書く。property test: feMul(a, feInv(a)) == 1。
+// 以下は未実装なので t.Skip。実装したら Skip を外して緑にする。
+
+func TestFeSub(t *testing.T) {
+	t.Skip("feSub 未実装")
+
+	// ケース1: 折り返さない引き算
+	got := feSub(big.NewInt(5), big.NewInt(3))
+	if got.Cmp(big.NewInt(2)) != 0 {
+		t.Errorf("feSub(5,3) = %v, want 2", got)
+	}
+
+	// ケース2: 負になる引き算。3 - 5 = -2 ≡ p-2 (mod p)
+	want := new(big.Int).Sub(p, big.NewInt(2)) // p-2
+	got = feSub(big.NewInt(3), big.NewInt(5))
+	if got.Cmp(want) != 0 {
+		t.Errorf("feSub(3,5) = %v, want p-2", got)
+	}
+}
+
+func TestFeMul(t *testing.T) {
+	t.Skip("feMul 未実装")
+
+	// ケース1: 折り返さない掛け算
+	got := feMul(big.NewInt(2), big.NewInt(3))
+	if got.Cmp(big.NewInt(6)) != 0 {
+		t.Errorf("feMul(2,3) = %v, want 6", got)
+	}
+
+	// ケース2: 折り返す掛け算。(p-1) * 2 = 2p-2 ≡ p-2 (mod p)
+	pm1 := new(big.Int).Sub(p, big.NewInt(1))  // p-1
+	want := new(big.Int).Sub(p, big.NewInt(2)) // p-2
+	got = feMul(pm1, big.NewInt(2))
+	if got.Cmp(want) != 0 {
+		t.Errorf("feMul(p-1,2) = %v, want p-2", got)
+	}
+}
+
+func TestFeInv(t *testing.T) {
+	t.Skip("feInv 未実装")
+
+	// property: a * a^(-1) ≡ 1 (mod p)
+	a := big.NewInt(2)
+	got := feMul(a, feInv(a))
+	if got.Cmp(big.NewInt(1)) != 0 {
+		t.Errorf("feMul(2, feInv(2)) = %v, want 1", got)
+	}
+}
 
 // ============================================================
 // 外側ループ: ゴールテスト（完成の定義、すべて t.Skip）

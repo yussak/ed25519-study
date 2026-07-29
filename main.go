@@ -30,10 +30,16 @@ func feAdd(a, b *big.Int) *big.Int {
 	return sum.Mod(sum, p)        // mod p で 0..p-1 に折り返す
 }
 
+// 以下は空スタブ（テストを先に書いたのでコンパイルを通すため）。実装したら中身を書く。
 // TODO(3): feSub(a, b) = (a - b) mod p   (負にならない mod に注意)
+func feSub(a, b *big.Int) *big.Int { return nil }
+
 // TODO(4): feMul(a, b) = (a * b) mod p
+func feMul(a, b *big.Int) *big.Int { return nil }
+
 // TODO(5): feInv(a) = a^(p-2) mod p       (フェルマーの小定理)
 //   → 成功: feMul(a, feInv(a)) == 1
+func feInv(a *big.Int) *big.Int { return nil }
 
 // ============================================================
 // 2. ねじれ Edwards 曲線  -x^2 + y^2 = 1 + d*x^2*y^2 (mod p)
