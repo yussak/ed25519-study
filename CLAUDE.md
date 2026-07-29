@@ -9,4 +9,6 @@ TDD で対応
 当面のゴールは TestAgainstStdEd25519 を通すこと（Ed25519 コア完成の定義）
 
 進捗は TODO.md でチェック管理する（項目を終えるたびに [x] を入れてコミットする）
-塊の単位は TODO.md の 1 セクション ≒ 1 PR（field / curve / sign）
+1 セクション ≒ 1 PR（field / curve / sign）
+着手中のセクションには TODO.md で 🚧 WIP を付ける（今どこをやっているか一目で分かるように）
+現在 WIP: 1（field）
