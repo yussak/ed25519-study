@@ -4,7 +4,8 @@ RFC 8032 の Ed25519 を Go でゼロから実装する。`math/big` と `crypto
 各段は「これが出れば成功」を満たしたらチェックを入れる。
 
 進める順番: **field → curve → sign**（下の層が固まってから次へ）。
-運用: **1 セクション ≒ 1 つの塊（PR）**。項目を終えるたびに `[x]` を入れてコミットする。
+運用: 親タスク 1 つ ≒ 1 PR。子を終えるたびに `[x]` を入れてコミット。着手中の親に 🚧 を付ける。
+（親 = 到達する「状態（できること）」の一文。子 = その手順。テスト緑は確認方法であって状態ではない）
 
 > ★ 当面のゴール: **`TestAgainstStdEd25519`** を通すこと。
 > （標準 crypto/ed25519 と keygen/sign/verify がバイト一致 = Ed25519 コア完成）
@@ -19,32 +20,27 @@ RFC 8032 の Ed25519 を Go でゼロから実装する。`math/big` と `crypto
 - [x] `go run .` と `go test ./...` が通る最小状態
 - [ ] RFC 8032 本文を一度ざっと読む（§5.1 が Ed25519） … まず全体像の把握が目的
 
-## 1. 有限体 GF(p), p = 2^255 - 19   🚧 WIP
-- [x] 素数 `p = 2^255 - 19` を定義
-- [x] `feAdd(a, b) = (a + b) mod p`
-- [ ] `feSub(a, b) = (a - b) mod p`（負にならない mod に注意）
-- [ ] `feMul(a, b) = (a * b) mod p`
-- [ ] `feInv(a) = a^(p-2) mod p`（フェルマーの小定理）
-- [ ] **成功判定:** 任意の `a(≠0)` で `feMul(a, feInv(a)) == 1`（`go test` 緑）
+## 実装
 
-## 2. ねじれ Edwards 曲線 -x^2+y^2 = 1+d·x^2·y^2
-- [ ] 曲線定数 `d = -121665 / 121666 (mod p)` を定義
-- [ ] 点の表現を決める（まずアフィン `(x, y)` から） … 拡張座標にするかは後で調査
-- [ ] 基点 `B` を RFC 8032 の既知値で定義
-- [ ] `onCurve(P)` … 点が曲線式を満たすか判定
-- [ ] 点の加算 `add(P, Q)`（Edwards 加算公式）
-- [ ] スカラー倍 `scalarMul(k, P)`（まず素直な double-and-add）
-- [ ] **成功判定:** `onCurve(B) == true` かつ `add(B,B) == scalarMul(2,B)`
-- [ ] （応用）群位数 `L` で `scalarMul(L, B)` が単位元になる … L の値と単位元の扱いを調査
+- [ ] 🚧 GF(p) で加減乗・逆元が計算できる
+  - [x] feAdd（p = 2^255-19 の定義を含む）
+  - [ ] feSub
+  - [ ] feMul
+  - [ ] feInv
 
-## 3. 鍵生成 / 署名 / 検証（RFC 8032 §5.1）
-- [ ] 点のエンコード `encodePoint(P) []byte`（32byte, y + x の符号ビット）
-- [ ] 点のデコード `decodePoint([]byte) (Point, error)` … 平方根の計算方法を調査（詰まりやすい）
-- [ ] 鍵生成 `generateKey(seed)`（SHA-512 → クランプ → `A = a·B`）
-- [ ] 署名 `sign(priv, msg)`（`R || S` の 64byte）
-- [ ] 検証 `verify(pub, msg, sig) bool`（`8·S·B == 8·R + 8·k·A`）
-- [ ] **成功判定:** 自作鍵で `sign → verify` が true / msg を 1bit 変えると false
-- [ ] **ゴール:** `TestAgainstStdEd25519` の `t.Skip` を外して緑（3 の締め）
+- [ ] 曲線上の点を加算・スカラー倍できる
+  - [ ] d = -121665/121666 を定義
+  - [ ] 基点 B
+  - [ ] onCurve（点が曲線式を満たすか）
+  - [ ] add（点の加算）
+  - [ ] scalarMul（スカラー倍）
+
+- [ ] seed から鍵を作り、署名・検証できる
+  - [ ] encode/decode（点の 32byte 変換。平方根の求め方は要調査）
+  - [ ] generateKey（SHA-512→クランプ→A=a·B）
+  - [ ] sign（R||S の 64byte）
+  - [ ] verify（8·S·B == 8·R + 8·k·A）
+  - [ ] TestAgainstStdEd25519 の Skip を外して緑（コア完成）
 
 ## 4. 仕上げ・検証の強化
 - [ ] RFC 8032 のテストベクタ（既知の seed/msg/署名）と完全一致を確認
