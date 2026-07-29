@@ -26,7 +26,7 @@ var p = new(big.Int).Sub(new(big.Int).Lsh(big.NewInt(1), 255), big.NewInt(19))
 // feAdd は有限体上の足し算。普通に a+b して、p で割った余りを返す。
 // 余りを取ることで結果を必ず 0..p-1 に収める（＝体の要素に畳む）。
 func feAdd(a, b *big.Int) *big.Int {
-	sum := new(big.Int).Add(a, b) // a + b（まだ p を超えているかも）
+	sum := new(big.Int).Add(a, b) // a+b は p 以上になり得るので、下で mod する
 	return sum.Mod(sum, p)        // mod p で 0..p-1 に折り返す
 }
 
