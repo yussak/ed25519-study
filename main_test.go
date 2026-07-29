@@ -48,8 +48,6 @@ func TestFeSub(t *testing.T) {
 }
 
 func TestFeMul(t *testing.T) {
-	t.Skip("feMul 未実装")
-
 	// ケース1: 折り返さない掛け算
 	got := feMul(big.NewInt(2), big.NewInt(3))
 	if got.Cmp(big.NewInt(6)) != 0 {

@@ -39,8 +39,11 @@ func feSub(a, b *big.Int) *big.Int {
 
 // 以下は空スタブ（テストを先に書いたのでコンパイルを通すため）。実装したら中身を書く。
 
-// TODO(4): feMul(a, b) = (a * b) mod p
-func feMul(a, b *big.Int) *big.Int { return nil }
+// feMul は有限体上の掛け算。a*b は大きくなり得るので p で割った余りを返す。
+func feMul(a, b *big.Int) *big.Int {
+	prod := new(big.Int).Mul(a, b) // a*b（p を大きく超え得る）
+	return prod.Mod(prod, p)       // mod p で 0..p-1 に折り返す
+}
 
 // TODO(5): feInv(a) = a^(p-2) mod p       (フェルマーの小定理)
 //   → 成功: feMul(a, feInv(a)) == 1
