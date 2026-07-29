@@ -1,3 +1,3 @@
 # CLAUDE.md
 
-TDD でやる。
+TDD で対応
