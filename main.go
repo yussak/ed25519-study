@@ -1,6 +1,9 @@
 package main
 
-import "fmt"
+import (
+	"fmt"
+	"math/big"
+)
 
 // ed25519-study : Ed25519 (RFC 8032) をゼロから自作して理解する。
 // まずは 1ファイル(main.go)にまとめて進める。分割は中身が分かってきてから。
@@ -14,9 +17,19 @@ func main() {
 // ============================================================
 // 1. 有限体 GF(p), p = 2^255 - 19   （まずここから）
 // ============================================================
-// TODO(1): 素数 p = 2^255 - 19 を定義
-//   ヒント: new(big.Int).Sub(new(big.Int).Lsh(big.NewInt(1), 255), big.NewInt(19))
-// TODO(2): feAdd(a, b) = (a + b) mod p
+
+// p = 2^255 - 19 : 有限体 GF(p) の法(モジュラス)。
+// Lsh(1, 255) は 1 << 255 = 2^255、そこから 19 を引く。
+// 巨大な整数なので int ではなく math/big の *big.Int で持つ。
+var p = new(big.Int).Sub(new(big.Int).Lsh(big.NewInt(1), 255), big.NewInt(19))
+
+// feAdd は有限体上の足し算。普通に a+b して、p で割った余りを返す。
+// 余りを取ることで結果を必ず 0..p-1 に収める（＝体の要素に畳む）。
+func feAdd(a, b *big.Int) *big.Int {
+	sum := new(big.Int).Add(a, b) // a + b（まだ p を超えているかも）
+	return sum.Mod(sum, p)        // mod p で 0..p-1 に折り返す
+}
+
 // TODO(3): feSub(a, b) = (a - b) mod p   (負にならない mod に注意)
 // TODO(4): feMul(a, b) = (a * b) mod p
 // TODO(5): feInv(a) = a^(p-2) mod p       (フェルマーの小定理)
