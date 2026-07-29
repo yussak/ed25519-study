@@ -22,7 +22,7 @@ func TestFeAdd(t *testing.T) {
 		t.Errorf("feAdd(2,3) = %v, want 5", got)
 	}
 
-	// ケース2: p を跨ぐ足し算。 (p-1) + 3 = p + 2 ≡ 2 (mod p)
+	// ケース2: 和が p 以上になるので mod で折り返す。(p-1)+3 = p+2 ≡ 2 (mod p)
 	pm1 := new(big.Int).Sub(p, big.NewInt(1)) // p-1
 	got = feAdd(pm1, big.NewInt(3))
 	if got.Cmp(big.NewInt(2)) != 0 {
