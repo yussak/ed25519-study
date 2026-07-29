@@ -33,8 +33,6 @@ func TestFeAdd(t *testing.T) {
 // 以下は未実装なので t.Skip。実装したら Skip を外して緑にする。
 
 func TestFeSub(t *testing.T) {
-	t.Skip("feSub 未実装")
-
 	// ケース1: 折り返さない引き算
 	got := feSub(big.NewInt(5), big.NewInt(3))
 	if got.Cmp(big.NewInt(2)) != 0 {

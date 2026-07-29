@@ -30,9 +30,14 @@ func feAdd(a, b *big.Int) *big.Int {
 	return sum.Mod(sum, p)        // mod p で 0..p-1 に折り返す
 }
 
+// feSub は有限体上の引き算。a-b は負になり得るが、Mod が結果を 0..p-1 に
+// 収める（負なら p を足して折り返す）ので、feAdd と同じ形で書ける。
+func feSub(a, b *big.Int) *big.Int {
+	diff := new(big.Int).Sub(a, b) // a-b は 0 未満になり得るので、下で mod する
+	return diff.Mod(diff, p)       // Mod は 0..p-1 に収める（負なら +p）
+}
+
 // 以下は空スタブ（テストを先に書いたのでコンパイルを通すため）。実装したら中身を書く。
-// TODO(3): feSub(a, b) = (a - b) mod p   (負にならない mod に注意)
-func feSub(a, b *big.Int) *big.Int { return nil }
 
 // TODO(4): feMul(a, b) = (a * b) mod p
 func feMul(a, b *big.Int) *big.Int { return nil }

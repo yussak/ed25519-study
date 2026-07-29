@@ -25,7 +25,7 @@ RFC 8032 の Ed25519 を Go でゼロから実装する。`math/big` と `crypto
 - [ ] WIP GF(p) で加減乗・逆元が計算できる
   - [x] テスト先書き（feAdd/Sub/Mul/Inv、未実装は skip）
   - [x] feAdd 実装
-  - [ ] feSub 実装
+  - [x] feSub 実装
   - [ ] feMul 実装
   - [ ] feInv 実装
 
