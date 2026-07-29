@@ -37,6 +37,10 @@ func TestFeAdd(t *testing.T) {
 // ============================================================
 // 外側ループ: ゴールテスト（完成の定義、すべて t.Skip）
 // 参照している API シグネチャは変更前提。
+//
+// ★ 当面のゴール = TestAgainstStdEd25519 を通すこと。
+//    これの t.Skip を外して緑にできたら Ed25519 コア完成。
+//    ph/ctx/batch はその後の応用（ゴールではない）。
 // ============================================================
 
 func fixedSeed() []byte {
@@ -47,9 +51,11 @@ func fixedSeed() []byte {
 	return seed
 }
 
+// ★★★ 当面のゴール ★★★
 // コア: 標準 crypto/ed25519 をオラクルにして keygen/sign/verify を突き合わせる。
+// これを緑にするのが今の最終目標。
 func TestAgainstStdEd25519(t *testing.T) {
-	t.Skip("ゴール: 実装が揃ったら Skip を外す")
+	t.Skip("当面のゴール: 実装が揃ったら Skip を外す")
 
 	seed := fixedSeed()
 	msg := []byte("hello ed25519")
