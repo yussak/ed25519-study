@@ -16,13 +16,13 @@ import (
 // ============================================================
 
 func TestFeAdd(t *testing.T) {
-	// ケース1: 素直な足し算（まだ mod は跨がない）
+	// ケース1: 和が p 未満なので mod しても変わらない
 	got := feAdd(big.NewInt(2), big.NewInt(3))
 	if got.Cmp(big.NewInt(5)) != 0 {
 		t.Errorf("feAdd(2,3) = %v, want 5", got)
 	}
 
-	// ケース2: p を跨ぐ足し算。 (p-1) + 3 = p + 2 ≡ 2 (mod p)
+	// ケース2: 和が p 以上になるので mod で折り返す。(p-1)+3 = p+2 ≡ 2 (mod p)
 	pm1 := new(big.Int).Sub(p, big.NewInt(1)) // p-1
 	got = feAdd(pm1, big.NewInt(3))
 	if got.Cmp(big.NewInt(2)) != 0 {
@@ -30,9 +30,64 @@ func TestFeAdd(t *testing.T) {
 	}
 }
 
-// TODO: TestFeSub を自分で書く。ヒント: 3 - 5 は 0 未満。mod p で正の値に畳めているか？
-// TODO: TestFeMul を自分で書く。ヒント: (p-1) * 2 ≡ p-2 (mod p) など。
-// TODO: TestFeInv を自分で書く。property test: feMul(a, feInv(a)) == 1。
+func TestFeSub(t *testing.T) {
+	// ケース1: 折り返さない引き算
+	got := feSub(big.NewInt(5), big.NewInt(3))
+	if got.Cmp(big.NewInt(2)) != 0 {
+		t.Errorf("feSub(5,3) = %v, want 2", got)
+	}
+
+	// ケース2: 負になる引き算。3 - 5 = -2 ≡ p-2 (mod p)
+	want := new(big.Int).Sub(p, big.NewInt(2)) // p-2
+	got = feSub(big.NewInt(3), big.NewInt(5))
+	if got.Cmp(want) != 0 {
+		t.Errorf("feSub(3,5) = %v, want p-2", got)
+	}
+}
+
+func TestFeMul(t *testing.T) {
+	// ケース1: 折り返さない掛け算
+	got := feMul(big.NewInt(2), big.NewInt(3))
+	if got.Cmp(big.NewInt(6)) != 0 {
+		t.Errorf("feMul(2,3) = %v, want 6", got)
+	}
+
+	// ケース2: 折り返す掛け算。(p-1) * 2 = 2p-2 ≡ p-2 (mod p)
+	pm1 := new(big.Int).Sub(p, big.NewInt(1))  // p-1
+	want := new(big.Int).Sub(p, big.NewInt(2)) // p-2
+	got = feMul(pm1, big.NewInt(2))
+	if got.Cmp(want) != 0 {
+		t.Errorf("feMul(p-1,2) = %v, want p-2", got)
+	}
+}
+
+func TestFeInv(t *testing.T) {
+	// feInv は mod p での逆元＝a に掛けて 1 になる整数（0.5 のような小数ではない）。
+	// 返り値そのものを、手で導ける具体値と突き合わせて「特定の整数が返る」ことを示す。
+
+	// ケース1: 2 の逆元は (p+1)/2。 2×(p+1)/2 = p+1 ≡ 1 (mod p) だから。
+	half := new(big.Int).Div(new(big.Int).Add(p, big.NewInt(1)), big.NewInt(2)) // (p+1)/2
+	if got := feInv(big.NewInt(2)); got.Cmp(half) != 0 {
+		t.Errorf("feInv(2) = %v, want (p+1)/2 = %v", got, half)
+	}
+
+	// ケース2: p-1(≡ -1) の逆元は自分自身。 (-1)×(-1)=1 だから。
+	pm1 := new(big.Int).Sub(p, big.NewInt(1))
+	if got := feInv(pm1); got.Cmp(pm1) != 0 {
+		t.Errorf("feInv(p-1) = %v, want p-1 = %v", got, pm1)
+	}
+
+	// ケース3: 1 の逆元は自分自身。
+	if got := feInv(big.NewInt(1)); got.Cmp(big.NewInt(1)) != 0 {
+		t.Errorf("feInv(1) = %v, want 1", got)
+	}
+
+	// 定義（a × 逆元 ≡ 1）も確認。feInv と feMul の噛み合わせを見る。
+	a := big.NewInt(2)
+	if got := feMul(a, feInv(a)); got.Cmp(big.NewInt(1)) != 0 {
+		t.Errorf("feMul(2, feInv(2)) = %v, want 1", got)
+	}
+}
 
 // ============================================================
 // 外側ループ: ゴールテスト（完成の定義、すべて t.Skip）
