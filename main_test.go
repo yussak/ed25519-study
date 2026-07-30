@@ -62,13 +62,23 @@ func TestFeMul(t *testing.T) {
 }
 
 func TestFeInv(t *testing.T) {
-	t.Skip("feInv 未実装")
+	// property: a * a^(-1) ≡ 1 (mod p)。逆元は乗算に依存するので複数の a で確認する。
 
-	// property: a * a^(-1) ≡ 1 (mod p)
+	// a = 2
 	a := big.NewInt(2)
-	got := feMul(a, feInv(a))
-	if got.Cmp(big.NewInt(1)) != 0 {
+	if got := feMul(a, feInv(a)); got.Cmp(big.NewInt(1)) != 0 {
 		t.Errorf("feMul(2, feInv(2)) = %v, want 1", got)
+	}
+
+	// a = p-1（最大の体要素）
+	pm1 := new(big.Int).Sub(p, big.NewInt(1))
+	if got := feMul(pm1, feInv(pm1)); got.Cmp(big.NewInt(1)) != 0 {
+		t.Errorf("feMul(p-1, feInv(p-1)) = %v, want 1", got)
+	}
+
+	// 特殊値: inv(1) == 1（単位元の逆元は自分自身）
+	if got := feInv(big.NewInt(1)); got.Cmp(big.NewInt(1)) != 0 {
+		t.Errorf("feInv(1) = %v, want 1", got)
 	}
 }
 

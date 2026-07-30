@@ -37,17 +37,18 @@ func feSub(a, b *big.Int) *big.Int {
 	return diff.Mod(diff, p)       // Mod は 0..p-1 に収める（負なら +p）
 }
 
-// 以下は空スタブ（テストを先に書いたのでコンパイルを通すため）。実装したら中身を書く。
-
 // feMul は有限体上の掛け算。a*b は大きくなり得るので p で割った余りを返す。
 func feMul(a, b *big.Int) *big.Int {
 	prod := new(big.Int).Mul(a, b) // a*b（p を大きく超え得る）
 	return prod.Mod(prod, p)       // mod p で 0..p-1 に折り返す
 }
 
-// TODO(5): feInv(a) = a^(p-2) mod p       (フェルマーの小定理)
-//   → 成功: feMul(a, feInv(a)) == 1
-func feInv(a *big.Int) *big.Int { return nil }
+// feInv は有限体上の逆元。フェルマーの小定理より a^(p-1) ≡ 1 (mod p) なので、
+// a^(p-2) ≡ a^(-1) (mod p) になる。Exp が冪乗を mod p で効率よく計算する。
+func feInv(a *big.Int) *big.Int {
+	pm2 := new(big.Int).Sub(p, big.NewInt(2)) // p-2
+	return new(big.Int).Exp(a, pm2, p)        // a^(p-2) mod p
+}
 
 // ============================================================
 // 2. ねじれ Edwards 曲線  -x^2 + y^2 = 1 + d*x^2*y^2 (mod p)
@@ -68,11 +69,11 @@ func feInv(a *big.Int) *big.Int { return nil }
 // --- スタブ（空の器）---
 // ゴールテストをコンパイルさせるためだけの仮実装。中身は後の段階で埋める。
 // （ゴールテストは t.Skip 中なので、今これらが呼ばれることはない）
-func generateKey(seed []byte) []byte      { return nil }
-func sign(seed, msg []byte) []byte        { return nil }
-func verify(pub, msg, sig []byte) bool    { return false }
-func signPh(seed, msg []byte) []byte      { return nil }
-func verifyPh(pub, msg, sig []byte) bool  { return false }
+func generateKey(seed []byte) []byte                  { return nil }
+func sign(seed, msg []byte) []byte                    { return nil }
+func verify(pub, msg, sig []byte) bool                { return false }
+func signPh(seed, msg []byte) []byte                  { return nil }
+func verifyPh(pub, msg, sig []byte) bool              { return false }
 func signCtx(seed, msg []byte, ctx string) []byte     { return nil }
 func verifyCtx(pub, msg, sig []byte, ctx string) bool { return false }
 func verifyBatch(pubs, msgs, sigs [][]byte) bool      { return false }
