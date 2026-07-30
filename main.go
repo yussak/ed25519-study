@@ -53,8 +53,28 @@ func feInv(a *big.Int) *big.Int {
 // ============================================================
 // 2. ねじれ Edwards 曲線  -x^2 + y^2 = 1 + d*x^2*y^2 (mod p)
 // ============================================================
-// TODO: 曲線定数 d = -121665 / 121666 (mod p)
-// TODO: 点の表現 (まずアフィン (x, y))、基点 B、onCurve(P)
+
+// point はアフィン座標 (x, y) の1点。まずは素直な (x, y) で持つ。
+// 拡張座標(高速版)への差し替えは、中身が見えてきたら後で判断する。
+type point struct{ x, y *big.Int }
+
+// d は曲線定数 = -121665 / 121666 (mod p)。
+// 「割り算」は体の上では「逆元を掛ける」こと。feInv(121666) が 1/121666。
+// feMul は結果を mod p に畳むので、-121665 の負値もそのまま渡してよい。
+var d = feMul(big.NewInt(-121665), feInv(big.NewInt(121666)))
+
+// onCurve は点 P が曲線式 -x^2 + y^2 = 1 + d*x^2*y^2 (mod p) を満たすか判定する。
+// これを先に用意しておくと、この後 add した結果が正しいかを毎回これで確かめられる。
+func onCurve(P point) bool {
+	x2 := feMul(P.x, P.x) // x^2
+	y2 := feMul(P.y, P.y) // y^2
+	left := feSub(y2, x2) // -x^2 + y^2  (= y^2 - x^2)
+	// 右辺 1 + d*x^2*y^2
+	right := feAdd(big.NewInt(1), feMul(d, feMul(x2, y2)))
+	return left.Cmp(right) == 0
+}
+
+// TODO: 基点 B
 // TODO: add(P, Q) / scalarMul(k, P)
 //   → 成功: onCurve(B) かつ add(B,B) == scalarMul(2,B)
 

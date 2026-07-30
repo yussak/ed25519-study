@@ -89,6 +89,17 @@ func TestFeInv(t *testing.T) {
 	}
 }
 
+func TestOnCurve(t *testing.T) {
+	// 一番小さい確かめ: 恒等元 (0,1) は必ず曲線上にある。
+	// 曲線式 -x^2 + y^2 = 1 + d*x^2*y^2 に (0,1) を入れると
+	// 左辺 = -0 + 1 = 1、右辺 = 1 + d*0 = 1 で一致する。
+	// これが通れば「点の型・d・曲線式の判定」が最低限つながっている。
+	id := point{x: big.NewInt(0), y: big.NewInt(1)}
+	if !onCurve(id) {
+		t.Errorf("onCurve(identity (0,1)) = false, want true")
+	}
+}
+
 // ============================================================
 // 外側ループ: ゴールテスト（完成の定義、すべて t.Skip）
 // 参照している API シグネチャは変更前提。
