@@ -62,23 +62,30 @@ func TestFeMul(t *testing.T) {
 }
 
 func TestFeInv(t *testing.T) {
-	// property: a * a^(-1) ≡ 1 (mod p)。逆元は乗算に依存するので複数の a で確認する。
+	// feInv は mod p での逆元＝a に掛けて 1 になる整数（0.5 のような小数ではない）。
+	// 返り値そのものを、手で導ける具体値と突き合わせて「特定の整数が返る」ことを示す。
 
-	// ケース1: 普通の値での基本確認
+	// ケース1: 2 の逆元は (p+1)/2。 2×(p+1)/2 = p+1 ≡ 1 (mod p) だから。
+	half := new(big.Int).Div(new(big.Int).Add(p, big.NewInt(1)), big.NewInt(2)) // (p+1)/2
+	if got := feInv(big.NewInt(2)); got.Cmp(half) != 0 {
+		t.Errorf("feInv(2) = %v, want (p+1)/2 = %v", got, half)
+	}
+
+	// ケース2: p-1(≡ -1) の逆元は自分自身。 (-1)×(-1)=1 だから。
+	pm1 := new(big.Int).Sub(p, big.NewInt(1))
+	if got := feInv(pm1); got.Cmp(pm1) != 0 {
+		t.Errorf("feInv(p-1) = %v, want p-1 = %v", got, pm1)
+	}
+
+	// ケース3: 1 の逆元は自分自身。
+	if got := feInv(big.NewInt(1)); got.Cmp(big.NewInt(1)) != 0 {
+		t.Errorf("feInv(1) = %v, want 1", got)
+	}
+
+	// 定義（a × 逆元 ≡ 1）も確認。feInv と feMul の噛み合わせを見る。
 	a := big.NewInt(2)
 	if got := feMul(a, feInv(a)); got.Cmp(big.NewInt(1)) != 0 {
 		t.Errorf("feMul(2, feInv(2)) = %v, want 1", got)
-	}
-
-	// ケース2: 最大の体要素 p-1（境界）
-	pm1 := new(big.Int).Sub(p, big.NewInt(1))
-	if got := feMul(pm1, feInv(pm1)); got.Cmp(big.NewInt(1)) != 0 {
-		t.Errorf("feMul(p-1, feInv(p-1)) = %v, want 1", got)
-	}
-
-	// ケース3: 単位元の逆元は自分自身（inv(1)=1）
-	if got := feInv(big.NewInt(1)); got.Cmp(big.NewInt(1)) != 0 {
-		t.Errorf("feInv(1) = %v, want 1", got)
 	}
 }
 
