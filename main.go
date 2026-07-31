@@ -53,8 +53,36 @@ func feInv(a *big.Int) *big.Int {
 // ============================================================
 // 2. ねじれ Edwards 曲線  -x^2 + y^2 = 1 + d*x^2*y^2 (mod p)
 // ============================================================
-// TODO: 曲線定数 d = -121665 / 121666 (mod p)
-// TODO: 点の表現 (まずアフィン (x, y))、基点 B、onCurve(P)
+
+// point は曲線上の点をアフィン座標 (x, y) で表す。まずは分かりやすさ優先で
+// アフィンのまま進める（速い拡張座標への載せ替えは後の最適化）。
+type point struct {
+	X, Y *big.Int
+}
+
+// d は曲線の形を決める定数 d = -121665 / 121666 (mod p)。
+// 「/」は体の割り算なので feInv(121666)（121666 の逆元）を掛ける。
+// feMul が最後に mod p するので、-121665 の負号もここで 0..p-1 に畳まれる。
+var d = feMul(big.NewInt(-121665), feInv(big.NewInt(121666)))
+
+// B は基点（生成元）。RFC 8032 が定める既知の座標。
+// By = 4/5 (mod p)、Bx はそれに対応する x。今はまだ点をデコードする手段
+// （平方根）が無いので、既知の 10 進値を直接置く。
+var bx, _ = new(big.Int).SetString("15112221349535400772501151409588531511454012693041857206046113283949847762202", 10)
+var by, _ = new(big.Int).SetString("46316835694926478169428394003475163141307993866256225615783033603165251855960", 10)
+var B = point{X: bx, Y: by}
+
+// onCurve は点 pt が曲線式 -x^2 + y^2 = 1 + d*x^2*y^2 (mod p) を満たすかを返す。
+// 左辺と右辺をそれぞれ体の演算で計算し、mod p で一致するかを見るだけ。
+func onCurve(pt point) bool {
+	x2 := feMul(pt.X, pt.X) // x^2
+	y2 := feMul(pt.Y, pt.Y) // y^2
+	left := feSub(y2, x2)   // 左辺 -x^2 + y^2 は y^2 - x^2 と同じ
+	// 右辺 1 + d*x^2*y^2
+	right := feAdd(big.NewInt(1), feMul(d, feMul(x2, y2)))
+	return left.Cmp(right) == 0
+}
+
 // TODO: add(P, Q) / scalarMul(k, P)
 //   → 成功: onCurve(B) かつ add(B,B) == scalarMul(2,B)
 

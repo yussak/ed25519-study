@@ -89,6 +89,27 @@ func TestFeInv(t *testing.T) {
 	}
 }
 
+func TestOnCurve(t *testing.T) {
+	// ケース1: 基点 B は曲線上にある。
+	// これが true になる = 定数 d と基点 B を正しく定義できた、の検算も兼ねる。
+	if !onCurve(B) {
+		t.Error("onCurve(B) = false, want true")
+	}
+
+	// ケース2: 単位元 (0,1) も曲線上。式に入れると -0+1 = 1+0 で成立する。
+	id := point{X: big.NewInt(0), Y: big.NewInt(1)}
+	if !onCurve(id) {
+		t.Error("onCurve((0,1)) = false, want true")
+	}
+
+	// ケース3: 明らかに外れた点 (1,1) は曲線上にない。
+	// 「常に true を返す」バグを弾くため、false になるべき点も確認する。
+	off := point{X: big.NewInt(1), Y: big.NewInt(1)}
+	if onCurve(off) {
+		t.Error("onCurve((1,1)) = true, want false")
+	}
+}
+
 // ============================================================
 // 外側ループ: ゴールテスト（完成の定義、すべて t.Skip）
 // 参照している API シグネチャは変更前提。
