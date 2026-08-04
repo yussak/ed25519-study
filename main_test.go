@@ -110,6 +110,23 @@ func TestOnCurve(t *testing.T) {
 	}
 }
 
+func TestAdd(t *testing.T) {
+	t.Skip("add 未実装: 実装したら Skip を外す")
+
+	// ケース1: 単位元 (0,1) を足しても点は変わらない（P + O = P）。
+	// 既に持っている単位元をオラクルに使い、既知の第3の点を用意せず縛る。
+	id := point{X: big.NewInt(0), Y: big.NewInt(1)}
+	if got := add(B, id); got.X.Cmp(B.X) != 0 || got.Y.Cmp(B.Y) != 0 {
+		t.Errorf("add(B, id) = (%v, %v), want B", got.X, got.Y)
+	}
+
+	// ケース2: B の二重化 add(B, B) の結果も曲線上に留まる。
+	// onCurve をオラクルにして「加算式が正しい」ことの強い証拠にする。
+	if !onCurve(add(B, B)) {
+		t.Error("onCurve(add(B, B)) = false, want true")
+	}
+}
+
 // ============================================================
 // 外側ループ: ゴールテスト（完成の定義、すべて t.Skip）
 // 参照している API シグネチャは変更前提。
