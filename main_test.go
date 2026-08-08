@@ -111,8 +111,6 @@ func TestOnCurve(t *testing.T) {
 }
 
 func TestAdd(t *testing.T) {
-	t.Skip("add 未実装: 実装したら Skip を外す")
-
 	// ケース1: 単位元 (0,1) を足しても点は変わらない（P + O = P）。
 	// 既に持っている単位元をオラクルに使い、既知の第3の点を用意せず縛る。
 	id := point{X: big.NewInt(0), Y: big.NewInt(1)}

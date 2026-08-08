@@ -86,8 +86,33 @@ func onCurve(pt point) bool {
 	return left.Cmp(right) == 0
 }
 
-// add は曲線上の 2 点の和を返す。中身は次段で実装（今はテスト先書きの空スタブ）。
-func add(p, q point) point { return point{} }
+// add は曲線上の 2 点 p, q の和を返す（ツイスト Edwards の完備加算式, a=-1）。
+//
+//	x3 = (x1*y2 + x2*y1) / (1 + d*x1*x2*y1*y2)
+//	y3 = (y1*y2 + x1*x2) / (1 - d*x1*x2*y1*y2)
+//
+// 完備式なので単位元 (0,1) や二重化 add(P,P) も場合分けなしで正しく出る。
+// 「/」は体の割り算なので、分母の逆元 feInv を掛ける（アフィンなので add ごとに 2 回）。
+func add(p, q point) point {
+	// 分子・分母で共通して使う積をまず作る。
+	x1y2 := feMul(p.X, q.Y)              // x1*y2
+	x2y1 := feMul(q.X, p.Y)              // x2*y1
+	y1y2 := feMul(p.Y, q.Y)              // y1*y2
+	x1x2 := feMul(p.X, q.X)              // x1*x2
+	dxxyy := feMul(d, feMul(x1x2, y1y2)) // d*x1*x2*y1*y2
+
+	// x3 = (x1*y2 + x2*y1) / (1 + d*x1*x2*y1*y2)
+	xNum := feAdd(x1y2, x2y1)           // 分子
+	xDen := feAdd(big.NewInt(1), dxxyy) // 分母 1 + d*...
+	x3 := feMul(xNum, feInv(xDen))      // 分子 * 分母の逆元
+
+	// y3 = (y1*y2 + x1*x2) / (1 - d*x1*x2*y1*y2)
+	yNum := feAdd(y1y2, x1x2)           // 分子
+	yDen := feSub(big.NewInt(1), dxxyy) // 分母 1 - d*...
+	y3 := feMul(yNum, feInv(yDen))      // 分子 * 分母の逆元
+
+	return point{X: x3, Y: y3}
+}
 
 // TODO: scalarMul(k, P)
 //   → 成功: onCurve(B) かつ add(B,B) == scalarMul(2,B)
