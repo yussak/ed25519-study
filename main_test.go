@@ -89,6 +89,72 @@ func TestFeInv(t *testing.T) {
 	}
 }
 
+func TestOnCurve(t *testing.T) {
+	// ケース1: 基点 B は曲線上にある。
+	// これが true になる = 定数 d と基点 B を正しく定義できた、の検算も兼ねる。
+	if !onCurve(B) {
+		t.Error("onCurve(B) = false, want true")
+	}
+
+	// ケース2: 単位元 (0,1) も曲線上。式に入れると -0+1 = 1+0 で成立する。
+	id := point{X: big.NewInt(0), Y: big.NewInt(1)}
+	if !onCurve(id) {
+		t.Error("onCurve((0,1)) = false, want true")
+	}
+
+	// ケース3: 明らかに外れた点 (1,1) は曲線上にない。
+	// 「常に true を返す」バグを弾くため、false になるべき点も確認する。
+	off := point{X: big.NewInt(1), Y: big.NewInt(1)}
+	if onCurve(off) {
+		t.Error("onCurve((1,1)) = true, want false")
+	}
+}
+
+func TestAdd(t *testing.T) {
+	// ケース1: 単位元 (0,1) を足しても点は変わらない（P + O = P）。
+	// 既に持っている単位元をオラクルに使い、既知の第3の点を用意せず縛る。
+	id := point{X: big.NewInt(0), Y: big.NewInt(1)}
+	if got := add(B, id); got.X.Cmp(B.X) != 0 || got.Y.Cmp(B.Y) != 0 {
+		t.Errorf("add(B, id) = (%v, %v), want B", got.X, got.Y)
+	}
+
+	// ケース2: B の二重化 add(B, B) の結果も曲線上に留まる。
+	// onCurve をオラクルにして「加算式が正しい」ことの強い証拠にする。
+	if !onCurve(add(B, B)) {
+		t.Error("onCurve(add(B, B)) = false, want true")
+	}
+}
+
+func TestScalarMul(t *testing.T) {
+	// ケース1: 0 倍は単位元 (0,1)。何も足していない状態＝加算の初期値。
+	id := point{X: big.NewInt(0), Y: big.NewInt(1)}
+	if got := scalarMul(big.NewInt(0), B); got.X.Cmp(id.X) != 0 || got.Y.Cmp(id.Y) != 0 {
+		t.Errorf("scalarMul(0, B) = (%v, %v), want (0,1)", got.X, got.Y)
+	}
+
+	// ケース2: 1 倍は点そのまま。単位元に 1 回だけ足す＝P。
+	if got := scalarMul(big.NewInt(1), B); got.X.Cmp(B.X) != 0 || got.Y.Cmp(B.Y) != 0 {
+		t.Errorf("scalarMul(1, B) = (%v, %v), want B", got.X, got.Y)
+	}
+
+	// ケース3: 2 倍は add(B, B) と一致する。
+	// 既に信頼できる add を二重化のオラクルに使い、double-and-add の正しさを縛る。
+	dbl := add(B, B)
+	if got := scalarMul(big.NewInt(2), B); got.X.Cmp(dbl.X) != 0 || got.Y.Cmp(dbl.Y) != 0 {
+		t.Errorf("scalarMul(2, B) = (%v, %v), want add(B,B)", got.X, got.Y)
+	}
+
+	// ケース4: 5 倍は add を 4 回重ねた結果と一致する。
+	// 2 の冪でない奇数倍で、ビットの足し込み（1 のビットで加算）まで通す。
+	want := B
+	for i := 0; i < 4; i++ {
+		want = add(want, B) // B を 5 個ぶん足す＝5B
+	}
+	if got := scalarMul(big.NewInt(5), B); got.X.Cmp(want.X) != 0 || got.Y.Cmp(want.Y) != 0 {
+		t.Errorf("scalarMul(5, B) = (%v, %v), want 5B", got.X, got.Y)
+	}
+}
+
 // ============================================================
 // 外側ループ: ゴールテスト（完成の定義、すべて t.Skip）
 // 参照している API シグネチャは変更前提。
