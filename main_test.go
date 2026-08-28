@@ -125,6 +125,36 @@ func TestAdd(t *testing.T) {
 	}
 }
 
+func TestScalarMul(t *testing.T) {
+	// ケース1: 0 倍は単位元 (0,1)。何も足していない状態＝加算の初期値。
+	id := point{X: big.NewInt(0), Y: big.NewInt(1)}
+	if got := scalarMul(big.NewInt(0), B); got.X.Cmp(id.X) != 0 || got.Y.Cmp(id.Y) != 0 {
+		t.Errorf("scalarMul(0, B) = (%v, %v), want (0,1)", got.X, got.Y)
+	}
+
+	// ケース2: 1 倍は点そのまま。単位元に 1 回だけ足す＝P。
+	if got := scalarMul(big.NewInt(1), B); got.X.Cmp(B.X) != 0 || got.Y.Cmp(B.Y) != 0 {
+		t.Errorf("scalarMul(1, B) = (%v, %v), want B", got.X, got.Y)
+	}
+
+	// ケース3: 2 倍は add(B, B) と一致する。
+	// 既に信頼できる add を二重化のオラクルに使い、double-and-add の正しさを縛る。
+	dbl := add(B, B)
+	if got := scalarMul(big.NewInt(2), B); got.X.Cmp(dbl.X) != 0 || got.Y.Cmp(dbl.Y) != 0 {
+		t.Errorf("scalarMul(2, B) = (%v, %v), want add(B,B)", got.X, got.Y)
+	}
+
+	// ケース4: 5 倍は add を 4 回重ねた結果と一致する。
+	// 2 の冪でない奇数倍で、ビットの足し込み（1 のビットで加算）まで通す。
+	want := B
+	for i := 0; i < 4; i++ {
+		want = add(want, B) // B を 5 個ぶん足す＝5B
+	}
+	if got := scalarMul(big.NewInt(5), B); got.X.Cmp(want.X) != 0 || got.Y.Cmp(want.Y) != 0 {
+		t.Errorf("scalarMul(5, B) = (%v, %v), want 5B", got.X, got.Y)
+	}
+}
+
 // ============================================================
 // 外側ループ: ゴールテスト（完成の定義、すべて t.Skip）
 // 参照している API シグネチャは変更前提。

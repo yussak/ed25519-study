@@ -114,8 +114,24 @@ func add(p, q point) point {
 	return point{X: x3, Y: y3}
 }
 
-// TODO: scalarMul(k, P)
-//   → 成功: onCurve(B) かつ add(B,B) == scalarMul(2,B)
+// scalarMul は点 P を k 倍した k*P を返す（k 個の P を足すのと同じ）。
+// 素朴に k 回 add すると k が巨大(256bit)な署名では終わらないので、
+// double-and-add で k のビット数ぶんの回数に抑える。
+//
+// 単位元 (0,1) から始め、k を上位ビットから見て 1 ビットごとに
+//   ・result を二重化（<<1 に相当）
+//   ・そのビットが 1 なら P を足し込む
+// と進める。add は完備式なので単位元も二重化も場合分け不要。
+func scalarMul(k *big.Int, P point) point {
+	result := point{X: big.NewInt(0), Y: big.NewInt(1)} // 単位元 O から開始
+	for i := k.BitLen() - 1; i >= 0; i-- {              // 上位ビットから 1 ビットずつ
+		result = add(result, result) // 二重化（桁を 1 つ上げる）
+		if k.Bit(i) == 1 {           // このビットが立っていれば
+			result = add(result, P) // P を足し込む
+		}
+	}
+	return result
+}
 
 // ============================================================
 // 3. 鍵生成 / 署名 / 検証 (RFC 8032 §5.1)
